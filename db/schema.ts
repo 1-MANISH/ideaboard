@@ -1,4 +1,4 @@
-import { integer, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { integer, jsonb, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
         id: serial("id").primaryKey(),
@@ -14,6 +14,15 @@ export const boards = pgTable("boards",{
         boardName:varchar('boardName').notNull(),
         userEmail:varchar("userEmail").notNull(),
         createdAt: timestamp("created_at").defaultNow().notNull(),
+})
+
+export const whiteboardData = pgTable("whiteboardData",{
+        id: serial("id").primaryKey(),
+        boardId:varchar("boardId").notNull().unique().references(()=>boards.boardId),
+        elements:jsonb('elements'),
+        appState:jsonb('appState'),
+        files:jsonb('files'),
+        updatedAt:timestamp("created_at").defaultNow().notNull(),
 })
 
 export type User = typeof users.$inferSelect;

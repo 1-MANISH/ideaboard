@@ -34,7 +34,7 @@ function CreateBoardDialog() {
                                })
                                return
                         }
-                        const boardId = workspaceName+"-"+ crypto.randomUUID()
+                        const boardId =  crypto.randomUUID()
                         const response = await axios.post('/api/board',{
                                 boardId:boardId,
                                 boardName:workspaceName
