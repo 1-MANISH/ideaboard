@@ -1,5 +1,4 @@
 "use client"
-import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import {
         Sidebar,
@@ -11,9 +10,10 @@ import {
         SidebarMenuButton,
 } from "@/components/ui/sidebar"
 import { useUser } from "@clerk/nextjs"
-import {  ArchiveIcon, LayoutGrid, PlusIcon, SettingsIcon, Sparkles, UserRound } from "lucide-react"
+import {  ArchiveIcon, LayoutGrid, SettingsIcon, Sparkles, UserRound } from "lucide-react"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
+import CreateBoardDialog from "../board/create-board-dialog"
 
 export function AppSidebar() {
 
@@ -34,7 +34,7 @@ export function AppSidebar() {
                         <SidebarContent>
 
                                 <SidebarGroup >
-                                        <Button> <PlusIcon /> Create New Board</Button>
+                                        <CreateBoardDialog />
                                 </SidebarGroup>
 
                                  <SidebarGroup >
@@ -71,7 +71,7 @@ export function AppSidebar() {
                         </SidebarContent>
 
                         <SidebarFooter >
-                                  <Button><PlusIcon />  Create New Board</Button>
+                                
 
                                   <div className="p-4 my-3 border rounded-md">
                                         <h2 className="text-sm flex justify-between">2 files created <span>total 3</span></h2>
