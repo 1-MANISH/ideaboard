@@ -192,6 +192,97 @@ function Whiteboard() {
                 )
         }
 
+        const handleDeleteElement = (elementId:string)=>{
+                if(!excalidrawAPI)return
+
+                const element = excalidrawAPI.getSceneElements()
+
+                const updatedElements = element?.map(element=>{
+                        if(element.id===selectedElement.id){
+                                return {
+                                        ...element,
+                                        isDeleted:true,
+                                        version:element.version+1,
+                                        updated:Date.now()
+                                }
+                        }else return element
+                })
+                excalidrawAPI.updateScene(
+                      {  elements:updatedElements}
+                )
+                setSelectedElement(null)
+        }
+
+        const handleLockElement = (elementId:string)=>{
+                if(!excalidrawAPI)return
+
+                const element = excalidrawAPI.getSceneElements()
+
+                const updatedElements = element?.map(element=>{
+                        if(element.id===selectedElement.id){
+                                return {
+                                        ...element,
+                                        locked:true,
+                                        version:element.version+1,
+                                        updated:Date.now()
+                                }
+                        }else return element
+                })
+                excalidrawAPI.updateScene(
+                      {  elements:updatedElements}
+                )
+        }
+
+        const handleCopyElement = ()=>{
+                if(!excalidrawAPI)return
+
+                const elements = excalidrawAPI.getSceneElements()
+
+                const updatedElements = [...elements,{
+                                 ...selectedElement,
+                                id:crypto.randomUUID(),
+                                version:1,
+                                x:selectedElement.x+15,
+                                y:selectedElement.y+15,
+                                seed:Math.floor(Math.random()*1000),
+                                updated:Date.now(),
+                                isDeleted:false
+                }]
+
+                excalidrawAPI.updateScene(
+                      {  elements:updatedElements}
+                )
+        }
+
+        const handleBringFrontOrBack = (side:string) =>{
+                if(!excalidrawAPI)return
+
+                const elements = excalidrawAPI.getSceneElements()
+
+                const selected  = elements.find(ele=>ele.id===selectedElement.id)
+
+                if(!selected)return
+
+                const remainingElements = elements.filter(ele=>ele.id!==selectedElement.id)
+
+               if(side==='back'){
+                        excalidrawAPI.updateScene({
+                               elements:[
+                                selected,
+                                ...remainingElements
+                               ] 
+                        })
+                }else{
+                         excalidrawAPI.updateScene({
+                               elements:[
+                                 ...remainingElements,
+                                selected
+                               ] 
+                        })
+                }
+   
+        }
+
         return (
                 <div style={{ height: "95vh" }}>
 
@@ -227,6 +318,11 @@ function Whiteboard() {
                                         selectedElement={selectedElement} 
                                         position={floatingPosition} 
                                         onPropertyChange={(property,value)=>handlePropertyChange(property,value)}
+                                        onDelete={(elementId:string)=>handleDeleteElement(elementId)}
+                                        onDuplicate={()=>handleCopyElement()}
+                                        onLock={(elementId:string)=>handleLockElement(elementId)}
+                                        onBringToFront={()=>handleBringFrontOrBack('front')}
+                                        onSendToBack={()=>handleBringFrontOrBack('back')}
                                 />
                         }
                 </div>

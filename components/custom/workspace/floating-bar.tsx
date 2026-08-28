@@ -9,7 +9,6 @@ import {
         EllipsisVertical,
         Grid,
         Lock,
-        Menu,
         Minus,
         Palette,
         Pencil,
@@ -21,10 +20,9 @@ import {
         AlignRight,
         ArrowDownToLine,
         ArrowUpToLine,
-        Layers,
 
 } from "lucide-react"
-import React, { useMemo, useState } from "react"
+import React, { useRef, useState } from "react"
 
 import {
         HoverCard,
@@ -47,9 +45,9 @@ type Props = {
                 top: number
         },
 
-        onDelete?: () => void,
+        onDelete?: (elementId: string) => void,
         onDuplicate?: () => void,
-        onLock?: () => void,
+        onLock?: (elementId: string) => void,
 
         onBringToFront?: () => void,
         onSendToBack?: () => void,
@@ -63,7 +61,8 @@ const COLORS = [
         "#f08c00",
         "#2f9e55",
         "#1971c2",
-        "#7048e8"
+        "#7048e8",
+        "#ffffff"
 
 ]
 
@@ -99,7 +98,17 @@ const FONT_SIZE_OPTIONS = [
                 label: "36px",
                 value: 36
         },
+]
 
+const BRING_OPTIONS = [
+        {
+                icon: ArrowUpToLine,
+                name: 'Bring front'
+        },
+        {
+                icon: ArrowDownToLine,
+                name: 'Send back'
+        }
 ]
 function FloatingBar({
         selectedElement,
@@ -120,6 +129,7 @@ function FloatingBar({
         }
 
         const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+        const dragElementRef = useRef(null)
 
         const type = selectedElement.type
 
@@ -137,6 +147,7 @@ function FloatingBar({
                                 left: position.left,
                                 top: position.top
                         }}
+                       
                 >
 
                         <Grid className="mr-2" />
@@ -146,12 +157,10 @@ function FloatingBar({
                                 {type === "rectangle" && <Square size={17} />}
                                 {type === "ellipse" && <Circle size={17} />}
                                 {type === "diamond" && <Diamond size={17} />}
-
                                 {isText && <Type size={17} />}
                                 {isLine && <Minus size={17} />}
                                 {isArrow && <ArrowRight size={17} />}
                                 {isFreeDraw && <Pencil size={17} />}
-
                         </div>
 
                         <Separator orientation="vertical" />
@@ -162,7 +171,6 @@ function FloatingBar({
                                 <HoverCardTrigger delay={10} closeDelay={100} render={<button className="flex h-9 w-9 items-center justify-center rounded-lg  hover:bg-gray-100"> <Palette size={17} /></button>} />
                                 <HoverCardContent dir="bottom" className="mt-6 z-[200]  bg-white">
                                         <div className="font-semibold text-sm"> Stroke color</div>
-
                                         <div className="flex gap-2 items-center mt-2">
                                                 {
                                                         COLORS.map((color) => {
@@ -194,7 +202,7 @@ function FloatingBar({
                                                                                 return <TextStyleButton
                                                                                         key={align.name}
                                                                                         selected={selectedElement.textAlign === align.name}
-                                                                                        onClick={() => onPropertyChange("textAlign", align.name)}
+                                                                                        onClick={() => onPropertyChange && onPropertyChange("textAlign", align.name)}
                                                                                         icon={<align.icon />}
                                                                                 />
                                                                         })
@@ -224,7 +232,7 @@ function FloatingBar({
                                                                                         color={color}
                                                                                         key={color}
                                                                                         active={selectedElement.backgroundColor === color}
-                                                                                        onClick={() => onPropertyChange?.("backgroundColor", color)}
+                                                                                        onClick={() => onPropertyChange && onPropertyChange?.("backgroundColor", color)}
                                                                                 />
                                                                         })
                                                                 }
@@ -235,29 +243,25 @@ function FloatingBar({
                                 </>
                         }
 
-                        {
-                                isFreeDraw && (
-                                        <>
-                                                <Separator orientation="vertical" />
-                                                <button className="h-9 rounded-lg px-3 text-sm hover:bg-gray-300">
-                                                        Width
-                                                </button>
-                                        </>
-                                )
-                        }
-
                         <Separator orientation="vertical" />
-                        <button className="h-9 rounded-lg px-3 text-sm">
+                        <button
+                                className="h-9 rounded-lg px-3 text-sm hover:bg-gray-200"
+                                onClick={() => onDuplicate && onDuplicate()}
+                        >
                                 <Copy size={17} />
                         </button>
-                        <button className="h-9 rounded-lg px-3 text-sm ">
+                        <button
+                                className="h-9 rounded-lg px-3 text-sm hover:bg-gray-200"
+                                onClick={() => onLock && onLock(selectedElement.id)}
+                        >
                                 <Lock size={17} />
                         </button>
-                        <button className="h-9 rounded-lg px-3 text-sm text-red-600">
+                        <button
+                                className="h-9 rounded-lg px-3 text-sm text-red-400 hover:bg-gray-200"
+                                onClick={() => onDelete && onDelete(selectedElement.id)}
+                        >
                                 <Trash size={17} />
                         </button>
-
-
 
                         <Separator orientation="vertical" />
 
@@ -265,20 +269,9 @@ function FloatingBar({
                                 selectedElement={selectedElement}
                                 type={type}
                                 onPropertyChange={onPropertyChange}
+                                onBringToFront={onBringToFront}
+                                onSendToBack={onSendToBack}
                         />
-
-
-                </div>
-        )
-}
-
-function ImageOptions({
-        selectedElement,
-        onPropertyChange,
-
-}) {
-        return (
-                <div>
 
                 </div>
         )
@@ -327,7 +320,7 @@ function StrokeStyleButton({
 }: {
         styleType: "solid" | "dashed" | "dotted",
         selected?: boolean,
-        onClick: () => void
+        onClick: any
 }) {
 
         return <button
@@ -352,7 +345,7 @@ function StrokeStyleButton({
                 <div
                         className={`
                                 w-8 border-t-2 border-slate-600 
-                                ${styleType === "solid" ? "border-solid" : styleType === "dash" ? "border-dashed" : "border-dotted"}
+                                ${styleType === "solid" ? "border-solid" : styleType === "dashed" ? "border-dashed" : "border-dotted"}
                         `}
                 />
 
@@ -361,7 +354,7 @@ function StrokeStyleButton({
 }
 
 function PropertyLabel({ children }: { children: React.ReactNode }) {
-        return <span className="text-[11px] font-semibold text-slate-500">
+        return <span className="text-[12px] font-bold text-slate-500">
                 {children}
         </span>
 }
@@ -393,7 +386,6 @@ function TextStyleButton({
                         ${selected ? "border-blue-300 bg-blue-50" : "border-slate-200 hover:bg-slate-50"}
                         `
                 }
-
         >
 
                 <span > {icon}</span>
@@ -406,21 +398,65 @@ function TextStyleButton({
 function MenuBar({
         selectedElement,
         type,
-        onPropertyChange
+        onPropertyChange,
+        onBringToFront,
+        onSendToBack,
 }: {
 
         selectedElement: any
         type: any,
-        onPropertyChange?: (property: string, value: any) => void
+        onPropertyChange?: (property: string, value: any) => void,
+        onBringToFront: any,
+        onSendToBack: any,
 }) {
 
         return <HoverCard>
-                <HoverCardTrigger delay={10} closeDelay={100} render={
-                        <button className="h-9 rounded-lg px-3 text-sm hover:bg-gray-100">
-                                <EllipsisVertical size={17} />
-                        </button>} />
+                <HoverCardTrigger delay={10} closeDelay={100} render={<button className="h-9 rounded-lg px-3 text-sm hover:bg-gray-100"><EllipsisVertical size={17} /></button>} />
+
                 <HoverCardContent dir="bottom" className="mt-6 z-[200]  bg-white flex flex-col gap-4">
-                        <PropertyLabel>{type.toUpperCase()} options</PropertyLabel>
+                        <PropertyLabel >{type.charAt(0).toUpperCase() + type.slice(1)} options</PropertyLabel>
+
+
+
+                        <div className="flex gap-2  mt-2 justify-between">
+
+                                <button
+
+                                        onClick={() => onBringToFront()}
+                                        className={`
+                                                                                                flex
+                                                                                                text-xs
+                                                                                                items-center
+                                                                                                justify-center
+                                                                                                rounded-lg
+                                                                                                border
+                                                                                                transition
+                                                                                                p-2
+                                                                                                hover:bg-slate-50"
+                                                                                                gap-2
+                                                                                        `}
+                                >
+                                        <ArrowUpToLine size={10} /> Bring front
+                                </button>
+                                <button
+
+                                        onClick={() => onSendToBack()}
+                                        className={`      text-xs
+                                                                                                flex
+                                                                                                items-center
+                                                                                                justify-center
+                                                                                                rounded-lg
+                                                                                                border
+                                                                                                transition
+                                                                                                p-2
+                                                                                                gap-2
+                                                                                                hover:bg-slate-50"
+                                                                                        `}
+                                >
+                                        <ArrowDownToLine size={10} /> Send back
+                                </button>
+
+                        </div>
 
                         <PropertyLabel> Stroke Color</PropertyLabel>
                         <div className="flex gap-2 items-center mt-2">
@@ -430,7 +466,7 @@ function MenuBar({
                                                         color={color}
                                                         key={color}
                                                         active={selectedElement.strokeColor === color}
-                                                        onClick={() => onPropertyChange?.("strokeColor", color)}
+                                                        onClick={() => onPropertyChange && onPropertyChange?.("strokeColor", color)}
                                                 />
                                         })
                                 }
@@ -447,14 +483,14 @@ function MenuBar({
                                                 <div >
                                                         <PropertyLabel>Font Size </PropertyLabel>
                                                         <div className="flex gap-2 items-center mt-2">
-                                                                <Select items={FONT_SIZE_OPTIONS}>
+                                                                <Select items={FONT_SIZE_OPTIONS} onValueChange={(value) => onPropertyChange && onPropertyChange("fontSize", value)}>
                                                                         <SelectTrigger className="w-[180px]">
                                                                                 <SelectValue placeholder="Font Size" />
                                                                         </SelectTrigger>
                                                                         <SelectContent>
                                                                                 <SelectGroup>
                                                                                         {FONT_SIZE_OPTIONS.map((item) => (
-                                                                                                <SelectItem key={item.value} value={item.label} onChange={(value)=>onPropertyChange("fontSize",value)}>
+                                                                                                <SelectItem key={item.value} value={item.value} >
                                                                                                         {item.label}
                                                                                                 </SelectItem>
                                                                                         ))}
@@ -468,24 +504,24 @@ function MenuBar({
                                                         <PropertyLabel>Font </PropertyLabel>
                                                         <div className="flex gap-2 items-center mt-2">
                                                                 {
-                                                                        [{ font: "Excalifont", value: "normal" }, { font: "sans-serif", value: "hand" }, { font: "monospace", value: "mono" }].map(({ font, value }) => {
+                                                                        [{ font: 2, value: "normal" }, { font: 1, value: "hand" }, { font: 3, value: "mono" }].map(({ font, value }) => {
 
                                                                                 const selected = selectedElement.fontFamily === font;
                                                                                 return <button
                                                                                         key={font}
                                                                                         onClick={() => onPropertyChange?.("fontFamily", font)}
                                                                                         className={`
-                                                                                        flex
-                                                                                        h-8
-                                                                                        items-center
-                                                                                        justify-center
-                                                                                        rounded-lg
-                                                                                        border
-                                                                                        transition
-                                                                                        p-2
+                                                                                                flex
+                                                                                                h-8
+                                                                                                items-center
+                                                                                                justify-center
+                                                                                                rounded-lg
+                                                                                                border
+                                                                                                transition
+                                                                                                p-2
 
-                                                                                        ${selected ? "border-blue-300 bg-blue-50" : "border-slate-200 hover:bg-slate-50"}
-                                                                                `}
+                                                                                                ${selected ? "border-blue-300 bg-blue-50" : "border-slate-200 hover:bg-slate-50"}
+                                                                                        `}
                                                                                 >
                                                                                         {value}
                                                                                 </button>
@@ -514,9 +550,12 @@ function MenuBar({
                         }
 
                         {
-                                ["rectangle", "circle", "diamond", "line", "arrow"].includes(type) &&
+                                ["rectangle", "ellipse", "diamond", "line", "arrow"].includes(type) &&
                                 <>
+
+
                                         <PropertyLabel>Stroke Style</PropertyLabel>
+
                                         <div className="flex gap-2 items-center mt-2">
                                                 {
                                                         ["solid", "dashed", "dotted"].map((stroke: string) => {
@@ -524,7 +563,7 @@ function MenuBar({
                                                                         styleType={stroke}
                                                                         key={stroke}
                                                                         selected={selectedElement.strokeStyle === stroke}
-                                                                        onClick={() => onPropertyChange?.("strokeStyle", stroke)}
+                                                                        onClick={() => onPropertyChange && onPropertyChange?.("strokeStyle", stroke)}
                                                                 />
                                                         })
                                                 }
@@ -538,19 +577,19 @@ function MenuBar({
                                                                 const selected = selectedElement.strokeWidth === width;
                                                                 return <button
                                                                         key={width}
-                                                                        onClick={() => onPropertyChange?.("strokeWidth", width)}
+                                                                        onClick={() => onPropertyChange && onPropertyChange?.("strokeWidth", width)}
                                                                         className={`
-                                                                                        flex
-                                                                                        h-8
-                                                                                        items-center
-                                                                                        justify-center
-                                                                                        rounded-lg
-                                                                                        border
-                                                                                        transition
-                                                                                        p-2
+                                                                                                flex
+                                                                                                h-8
+                                                                                                items-center
+                                                                                                justify-center
+                                                                                                rounded-lg
+                                                                                                border
+                                                                                                transition
+                                                                                                p-2
 
-                                                                                        ${selected ? "border-blue-300 bg-blue-50" : "border-slate-200 hover:bg-slate-50"}
-                                                                                `}
+                                                                                                ${selected ? "border-blue-300 bg-blue-50" : "border-slate-200 hover:bg-slate-50"}
+                                                                                        `}
                                                                 >
                                                                         <div
                                                                                 className={`w-8 bg-black`}
@@ -566,7 +605,7 @@ function MenuBar({
 
                         }
                         {
-                                ["rectangle", "circle", "diamond"].includes(type) &&
+                                ["rectangle", "ellipse", "diamond"].includes(type) &&
                                 <>
                                         <PropertyLabel>Fill Color</PropertyLabel>
                                         <div className="flex gap-2 items-center mt-2">
@@ -576,7 +615,7 @@ function MenuBar({
                                                                         color={color}
                                                                         key={color}
                                                                         active={selectedElement.backgroundColor === color}
-                                                                        onClick={() => onPropertyChange?.("backgroundColor", color)}
+                                                                        onClick={() => onPropertyChange && onPropertyChange?.("backgroundColor", color)}
                                                                 />
                                                         })
                                                 }
@@ -591,7 +630,7 @@ function MenuBar({
                                 max={100}
                                 step={1}
                                 className="mx-auto w-full max-w-xs"
-                                onValueChange={(value) => onPropertyChange("opacity", value as number[])}
+                                onValueChange={(value) => onPropertyChange && onPropertyChange("opacity", value as number[])}
                         />
                 </HoverCardContent>
         </HoverCard>
