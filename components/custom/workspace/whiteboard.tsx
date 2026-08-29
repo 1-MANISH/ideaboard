@@ -6,9 +6,11 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import "./whiteboard.css"
-import { ArrowRight, Circle, Diamond, Eraser, Hand, Image, Minus, MousePointer2, Pencil, Square, Type, WandSparkles } from "lucide-react";
+import { ArrowRight, Circle, Diamond, Eraser, Hand, Image, Minus, MousePointer2, Pencil, Sparkle, Square, Type, WandSparkles } from "lucide-react";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import FloatingBar from "./floating-bar";
+import { Button } from "@/components/ui/button";
+import AIFloatingSidebar from "./ai-floating-sidebar";
 
 
 const tools = [
@@ -80,6 +82,7 @@ function Whiteboard() {
         const [activeTool, setActiveTool] = useState('selection')
         const [selectedElement,setSelectedElement] =useState<any>(null)
         const [canvasState,setCanvasState]=useState<any>(null)
+        const [showAiSideBar,setShowAiSideBar] = useState(true)
 
 
         const { boardId } = useParams()
@@ -325,6 +328,17 @@ function Whiteboard() {
                                         onSendToBack={()=>handleBringFrontOrBack('back')}
                                 />
                         }
+
+                        <div
+                                className="absolute right-15 bottom-5 z-1000"
+                        >
+                                <Button size={"lg"} onClick={()=>setShowAiSideBar(prev=>!prev)}>
+                                        <Sparkle /> AI
+                                </Button>
+                        </div>
+                       {showAiSideBar &&  <AIFloatingSidebar
+                                excalidrawApi={excalidrawAPI}
+                       />}
                 </div>
         )
 }
