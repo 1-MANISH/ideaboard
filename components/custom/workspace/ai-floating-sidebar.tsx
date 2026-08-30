@@ -17,7 +17,8 @@ import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
 import axios from "axios";
 
 type Props = {
-        excalidrawApi: ExcalidrawImperativeAPI | null
+        excalidrawApi: ExcalidrawImperativeAPI | null,
+        onClose:()=>void
 }
 
 
@@ -444,7 +445,8 @@ const AI_PLACEHOLDER_IDS ={
 
 }
 function AIFloatingSidebar({
-        excalidrawApi
+        excalidrawApi,
+        onClose
 }: Props) {
 
 
@@ -568,7 +570,9 @@ function AIFloatingSidebar({
                                         type: 3,
                                 },
                         },
-                ]);
+                ],{
+                        regenerateIds:false
+                });
 
                 const currentElements = excalidrawApi.getSceneElements()
 
@@ -592,6 +596,121 @@ function AIFloatingSidebar({
                         elements:updatedElements
                 })
         }
+
+        const getConnectionPoints = (fromNode:any,toNode:any,origin:{x:number,y:number})=>{
+
+                const fromX = origin.x = Number(fromNode.x || 0)
+                const fromY = origin.y = Number(fromNode.y || 0)
+                const fromWidth = Number(fromNode.width || 200)
+                const fromHeight = Number(fromNode.height || 80)
+
+                const toX = Number(toNode.x || 0)
+                const toY = Number(toNode.y || 0)
+                const toWidth = Number(toNode.width || 200)
+                const toHeight = Number(toNode.height || 80)
+
+                const fromCenterX = fromX + fromWidth/2
+                const fromCenterY = fromY + fromHeight/2
+
+                const toCenterX = toX + toWidth/2
+                const toCenterY = toY + toHeight/2
+
+                const dx = toCenterX - fromCenterX
+                const dy = toCenterY - fromCenterY
+
+                // vertical connection
+
+                if(Math.abs(dy)>=Math.abs(dx)){
+                        if(dy>0){
+                                return {
+                                        startX:fromCenterX,
+                                        startY:fromY+fromHeight,
+                                        endX:toCenterX,
+                                        endY:toY
+                                }
+                        }
+
+                        return {
+                                startX:fromCenterX,
+                                startY:fromY,
+                                endX:toCenterX,
+                                endY:toY+toHeight
+                        }
+                }
+
+                // horizontal connection
+                if(dx>0){
+                        return {
+                                startX:fromX+fromWidth,
+                                startY:fromCenterY,
+                                endX:toX,
+                                endY:toCenterY
+                        }
+                }
+
+                return {
+                        startX:fromX,
+                        startY:fromCenterY,
+                        endX:toX+toWidth,
+                        endY:toCenterY
+                }
+
+        }
+
+        const renderAIDiagram = (diagram:any)=>{
+                if(!excalidrawApi)return
+
+                const origin  = getEmptyCanvasPosition()
+
+                const aiElements = diagram?.elements || []
+                const aiConnections = diagram?.connections || []
+
+                if(!aiElements.length)return
+
+                //HELPER - FIND AI NODE
+                const getNode = (id:string)=>{
+                        return aiElements.find((ele:any)=>ele.id===id)
+                }
+
+
+                // CREATE SHAPES
+
+                const shapeElements  =  aiElements.flatMap((element:any)=>{
+
+                        if(!element.type || !element.id)return []
+
+                        const baseElement = {
+                                id:element.id,
+                                type:element.type,
+                                x:element.x,
+                                y:element.y,
+                                width:element.width,
+                                height:element.height,
+                                strokeColor:element.strokeColor || "#1e1e1e",
+                                backgroundColor:element.backgroundColor || "transparent",
+                                storkWidth:Number(element.strokeWidth) || 2,
+                                strokeStyle:element.strokeStyle || "solid",
+                                fillStyle:element.fillStyle ?? "solid",
+                                roughness:element.roughness ?? 1,
+                                opacity:element.opacity ?? 100,
+                                roundness:element.roundness ?? {
+                                        type:1,
+                                        value:0
+                                }
+
+                        } 
+
+                        return baseElement
+                })
+
+                console.log(shapeElements)
+
+                excalidrawApi.updateScene({
+                        elements:aiElements
+                })
+
+
+        }
         const onClickGenerate = async () => {
 
                 if(!excalidrawApi)return
@@ -611,16 +730,10 @@ function AIFloatingSidebar({
                         })
 
                         removeAiPlaceholder()
-                        console.log(response.data.diagramResult)
 
-                        const elements = excalidrawApi.getSceneElements()
+                        if(!response.data.diagramResult)return
 
-                        excalidrawApi?.updateScene({
-                                elements:[
-                                        ...elements,
-                                        response.data.diagramResult.items
-                                ]
-                        })
+                        renderAIDiagram(response.data.diagramResult)
                         
                 } catch (error) {
 
@@ -669,6 +782,7 @@ function AIFloatingSidebar({
               transition-colors
               hover:bg-gray-100 hover:text-gray-700
             "
+                                                onClick={onClose}
                                         >
                                                 <X className="h-4 w-4" />
                                         </button>
