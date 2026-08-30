@@ -6,9 +6,11 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import "./whiteboard.css"
-import { ArrowRight, Circle, Diamond, Eraser, Hand, Image, Minus, MousePointer2, Pencil, Square, Type, WandSparkles } from "lucide-react";
+import { ArrowRight, Circle, Diamond, Eraser, Hand, Image, Minus, MousePointer2, Pencil, Sparkle, Square, Type, WandSparkles } from "lucide-react";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import FloatingBar from "./floating-bar";
+import { Button } from "@/components/ui/button";
+import AIFloatingSidebar from "./ai-floating-sidebar";
 
 
 const tools = [
@@ -74,12 +76,16 @@ const tools = [
         },
 ]
 
-function Whiteboard() {
+type Props ={
+        onApiReady:(api:ExcalidrawImperativeAPI)=>void
+}
+function Whiteboard({onApiReady}:Props) {
 
         const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null)
         const [activeTool, setActiveTool] = useState('selection')
         const [selectedElement,setSelectedElement] =useState<any>(null)
         const [canvasState,setCanvasState]=useState<any>(null)
+        const [showAiSideBar,setShowAiSideBar] = useState(true)
 
 
         const { boardId } = useParams()
@@ -119,16 +125,16 @@ function Whiteboard() {
                                 clearTimeout(saveTimeRef.current)
                         }
 
-                        // // Start new 10 seconds timer
-                        // saveTimeRef.current = setTimeout(async()=>{
-                        //         // save method
-                        //         await saveCanvasChanges(elements,appState,files)
-                        //         toast.add({
-                        //                 type:"success",
-                        //                 title:"Board saved",
-                        //                 description:"Your board successfully saved!"
-                        //         })
-                        // },10*1000)
+                        // Start new 10 seconds timer
+                        saveTimeRef.current = setTimeout(async()=>{
+                                // save method
+                                await saveCanvasChanges(elements,appState,files)
+                                toast.add({
+                                        type:"success",
+                                        title:"Board saved",
+                                        description:"Your board successfully saved!"
+                                })
+                        },10*1000)
 
 
                 } catch (error) {
@@ -288,8 +294,16 @@ function Whiteboard() {
 
                         <Excalidraw
                                 //@ts-ignore
-                                excalidrawAPI={(api) => setExcalidrawAPI(api)}
+                                excalidrawAPI={(api) => {
+                                        setExcalidrawAPI(api)
+                                        onApiReady(api)
+                                }}
                                 onChange={handleCanvasChange}
+                                initialData={{
+                                        appState:{
+                                                currentItemRoughness:0
+                                        }
+                                }}
 
                         />
 
@@ -325,6 +339,18 @@ function Whiteboard() {
                                         onSendToBack={()=>handleBringFrontOrBack('back')}
                                 />
                         }
+
+                        <div
+                                className="absolute right-15 bottom-5 z-1000"
+                        >
+                                <Button size={"lg"} onClick={()=>setShowAiSideBar(prev=>!prev)}>
+                                        <Sparkle /> AI
+                                </Button>
+                        </div>
+                       {showAiSideBar &&  <AIFloatingSidebar
+                                excalidrawApi={excalidrawAPI}
+                                onClose={()=>setShowAiSideBar(false)}
+                       />}
                 </div>
         )
 }
