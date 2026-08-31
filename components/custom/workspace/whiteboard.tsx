@@ -11,6 +11,7 @@ import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import FloatingBar from "./floating-bar";
 import { Button } from "@/components/ui/button";
 import AIFloatingSidebar from "./ai-floating-sidebar";
+import WorkspaceHelper from "./workspace-helper";
 
 
 const tools = [
@@ -125,16 +126,16 @@ function Whiteboard({onApiReady}:Props) {
                                 clearTimeout(saveTimeRef.current)
                         }
 
-                        // Start new 10 seconds timer
-                        saveTimeRef.current = setTimeout(async()=>{
-                                // save method
-                                await saveCanvasChanges(elements,appState,files)
-                                toast.add({
-                                        type:"success",
-                                        title:"Board saved",
-                                        description:"Your board successfully saved!"
-                                })
-                        },10*1000)
+                        // // Start new 10 seconds timer
+                        // saveTimeRef.current = setTimeout(async()=>{
+                        //         // save method
+                        //         await saveCanvasChanges(elements,appState,files)
+                        //         toast.add({
+                        //                 type:"success",
+                        //                 title:"Board saved",
+                        //                 description:"Your board successfully saved!"
+                        //         })
+                        // },10*1000)
 
 
                 } catch (error) {
@@ -351,6 +352,10 @@ function Whiteboard({onApiReady}:Props) {
                                 excalidrawApi={excalidrawAPI}
                                 onClose={()=>setShowAiSideBar(false)}
                        />}
+
+                       <WorkspaceHelper 
+                                excalidrawApi={excalidrawAPI}
+                       />
                 </div>
         )
 }
