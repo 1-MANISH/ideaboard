@@ -3,13 +3,17 @@ import Image from "next/image"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Download, Save, Share } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 type Props={
         selectedTab:any,
-        onExport:any        
+        onExport:any,
+        boardName:string        
 }
 
-function WorkspaceHeader({selectedTab,onExport}:Props) {
+function WorkspaceHeader({selectedTab,onExport,boardName}:Props) {
+
+        const router = useRouter()
 
         return (
                 <div className="p-3 border-b flex justify-between">
@@ -19,8 +23,9 @@ function WorkspaceHeader({selectedTab,onExport}:Props) {
                                         alt="logo image"
                                         width={35}
                                         height={35}
+                                        onClick={()=>router.push('/dashboard')}
                                 />
-                                <h2>Workspace Name</h2>
+                                <h2>{boardName}</h2>
                         </div>
                         {/* Switch */}
                         <div>
