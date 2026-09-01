@@ -126,16 +126,16 @@ function Whiteboard({onApiReady}:Props) {
                                 clearTimeout(saveTimeRef.current)
                         }
 
-                        // // Start new 10 seconds timer
-                        // saveTimeRef.current = setTimeout(async()=>{
-                        //         // save method
-                        //         await saveCanvasChanges(elements,appState,files)
-                        //         toast.add({
-                        //                 type:"success",
-                        //                 title:"Board saved",
-                        //                 description:"Your board successfully saved!"
-                        //         })
-                        // },10*1000)
+                        // Start new 10 seconds timer
+                        saveTimeRef.current = setTimeout(async()=>{
+                                // save method
+                                await saveCanvasChanges(elements,appState,files)
+                                toast.add({
+                                        type:"success",
+                                        title:"Board saved",
+                                        description:"Your board successfully saved!"
+                                })
+                        },10*1000)
 
 
                 } catch (error) {
