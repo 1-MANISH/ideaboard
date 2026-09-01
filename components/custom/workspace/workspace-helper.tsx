@@ -1,3 +1,4 @@
+"use client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -7,9 +8,253 @@ import {
 import { convertToExcalidrawElements } from "@excalidraw/excalidraw"
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types"
 import { Dessert, Notebook, Smile } from "lucide-react"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import EmojiPicker, {
+        type EmojiClickData,
+} from "emoji-picker-react";
+import {
+        Accessibility,
+        Activity,
+        Airplay,
+        AlarmClock,
+        AlarmClockCheck,
+        AlarmClockMinus,
+        AlarmClockPlus,
+        ArrowDownAZ,
+        ArrowUpAZ,
+        Ban,
+        Bell,
+        Calendar,
+        Camera,
+        Check,
+        CircleAlert,
+        Cloud,
+        Coffee,
+        Copy,
+        Download,
+        File,
+        Folder,
+        Heart,
+        Home,
+        Image,
+        Info,
+        Mail,
+        MapPin,
+        Menu,
+        MessageCircle,
+        Mic,
+        Music,
+        Package,
+        Pencil,
+        Phone,
+        Play,
+        Plus,
+        Search,
+        Settings,
+        Share2,
+        ShoppingCart,
+        Star,
+        Trash2,
+        User,
+        Video,
+        X,
+        Zap,
+        type LucideIcon,
+} from "lucide-react";
 
+type IconItem = {
+        name: string;
+        icon: LucideIcon;
+}
+
+
+const ICONS: IconItem[] = [
+        {
+                name: "Arrow Down",
+                icon: ArrowDownAZ,
+        },
+        {
+                name: "Arrow Up",
+                icon: ArrowUpAZ,
+        },
+        {
+                name: "Accessibility",
+                icon: Accessibility,
+        },
+        {
+                name: "Activity",
+                icon: Activity,
+        },
+        {
+                name: "Activity Square",
+                icon: Activity,
+        },
+        {
+                name: "Airplay",
+                icon: Airplay,
+        },
+        {
+                name: "Alarm Clock",
+                icon: AlarmClock,
+        },
+        {
+                name: "Alarm Clock Check",
+                icon: AlarmClockCheck,
+        },
+        {
+                name: "Alarm Clock Minus",
+                icon: AlarmClockMinus,
+        },
+        {
+                name: "Alarm Clock Plus",
+                icon: AlarmClockPlus,
+        },
+        {
+                name: "Ban",
+                icon: Ban,
+        },
+        {
+                name: "Bell",
+                icon: Bell,
+        },
+        {
+                name: "Calendar",
+                icon: Calendar,
+        },
+        {
+                name: "Camera",
+                icon: Camera,
+        },
+        {
+                name: "Check",
+                icon: Check,
+        },
+        {
+                name: "Circle Alert",
+                icon: CircleAlert,
+        },
+        {
+                name: "Cloud",
+                icon: Cloud,
+        },
+        {
+                name: "Coffee",
+                icon: Coffee,
+        },
+        {
+                name: "Copy",
+                icon: Copy,
+        },
+        {
+                name: "Download",
+                icon: Download,
+        },
+        {
+                name: "File",
+                icon: File,
+        },
+        {
+                name: "Folder",
+                icon: Folder,
+        },
+        {
+                name: "Heart",
+                icon: Heart,
+        },
+        {
+                name: "Home",
+                icon: Home,
+        },
+        {
+                name: "Image",
+                icon: Image,
+        },
+        {
+                name: "Info",
+                icon: Info,
+        },
+        {
+                name: "Mail",
+                icon: Mail,
+        },
+        {
+                name: "Map Pin",
+                icon: MapPin,
+        },
+        {
+                name: "Menu",
+                icon: Menu,
+        },
+        {
+                name: "Message",
+                icon: MessageCircle,
+        },
+        {
+                name: "Mic",
+                icon: Mic,
+        },
+        {
+                name: "Music",
+                icon: Music,
+        },
+        {
+                name: "Package",
+                icon: Package,
+        },
+        {
+                name: "Pencil",
+                icon: Pencil,
+        },
+        {
+                name: "Phone",
+                icon: Phone,
+        },
+        {
+                name: "Play",
+                icon: Play,
+        },
+        {
+                name: "Plus",
+                icon: Plus,
+        },
+        {
+                name: "Settings",
+                icon: Settings,
+        },
+        {
+                name: "Share",
+                icon: Share2,
+        },
+        {
+                name: "Shopping Cart",
+                icon: ShoppingCart,
+        },
+        {
+                name: "Star",
+                icon: Star,
+        },
+        {
+                name: "Trash",
+                icon: Trash2,
+        },
+        {
+                name: "User",
+                icon: User,
+        },
+        {
+                name: "Video",
+                icon: Video,
+        },
+        {
+                name: "X",
+                icon: X,
+        },
+        {
+                name: "Zap",
+                icon: Zap,
+        },
+]
 type Props = {
         excalidrawApi: ExcalidrawImperativeAPI | null,
 
@@ -294,6 +539,8 @@ function EmojisIcon({
         excalidrawApi
 }: Props) {
 
+        const [iconSearch, setIconSearch] = useState("")
+
 
         const getEmptyCanvasPosition = () => {
                 if (!excalidrawApi) return { x: 100, y: 100 }
@@ -313,11 +560,60 @@ function EmojisIcon({
                 }
         }
 
-         const handleAddEmptyNote = (iconEmoji:any) => {
-                   const position = getEmptyCanvasPosition()
+        const handleAddEmoji = (
+                emojiData: EmojiClickData
+        ) => {
 
-                   // logic to insert emoji or icon
-         }
+                if (!excalidrawApi) {
+                        return;
+                }
+
+
+                const position = getEmptyCanvasPosition()
+
+
+                const emoji = emojiData.emoji
+
+
+                const elements = convertToExcalidrawElements([
+                        {
+                                type: "text",
+
+                                x: position.x,
+                                y: position.y,
+
+                                text: emoji,
+
+                                fontSize: 96,
+
+                                fontFamily: 1,
+
+                                textAlign: "left",
+
+                                verticalAlign: "top",
+
+                                strokeColor: "#000000",
+
+                                backgroundColor: "transparent",
+
+                                roughness: 0,
+
+                                opacity: 100,
+                        },])
+
+
+                const currentElements = excalidrawApi.getSceneElements()
+
+
+                excalidrawApi.updateScene({
+                        elements: [
+                                ...currentElements,
+                                ...elements,
+                        ],
+                })
+        }
+
+ 
 
 
         return <div className="
@@ -349,9 +645,27 @@ function EmojisIcon({
                                 </TabsList>
 
                                 <TabsContent value="emojis" className="w-full ">
-                                        <Card className="p-10">
-                                                <p className=" font-semibold text-gray-500 text-sm">Soon this feature will be available</p>
-                                        </Card>
+                                      
+                                                <TabsContent
+                                                        value="emojis"
+                                                        className="mt-3"
+                                                >
+
+                                                        <EmojiPicker
+                                                                onEmojiClick={
+                                                                        handleAddEmoji
+                                                                }
+
+                                                                width="100%"
+                                                                height={400}
+                                                                searchPlaceHolder="Search"
+                                                                previewConfig={{
+                                                                        showPreview: false,
+                                                                }}
+                                                                lazyLoadEmojis={true}
+                                                        />
+
+                                                </TabsContent>
                                 </TabsContent>
                                 <TabsContent value="icon" className="w-full">
                                         <Card className="p-10">
