@@ -142,7 +142,7 @@ function FloatingBar({
 
         return (
                 <div
-                        className="absolute z-[100] flex -translate-x-1/2 items-center gap-1 p-4 shadow-lg rounded-lg bg-white-100"
+                        className="absolute z-[100000] flex -translate-x-1/2 items-center gap-1 p-4 shadow-lg rounded-lg bg-white"
                         style={{
                                 left: position.left,
                                 top: position.top

@@ -11,6 +11,7 @@ import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import FloatingBar from "./floating-bar";
 import { Button } from "@/components/ui/button";
 import AIFloatingSidebar from "./ai-floating-sidebar";
+import WorkspaceHelper from "./workspace-helper";
 
 
 const tools = [
@@ -351,6 +352,10 @@ function Whiteboard({onApiReady}:Props) {
                                 excalidrawApi={excalidrawAPI}
                                 onClose={()=>setShowAiSideBar(false)}
                        />}
+
+                       <WorkspaceHelper 
+                                excalidrawApi={excalidrawAPI}
+                       />
                 </div>
         )
 }
