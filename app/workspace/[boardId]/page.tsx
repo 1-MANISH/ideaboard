@@ -4,12 +4,44 @@ import Whiteboard from "@/components/custom/workspace/whiteboard"
 import WorkspaceHeader from "@/components/custom/workspace/workspace-header"
 import { exportToBlob } from "@excalidraw/excalidraw"
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types"
-import { useState } from "react"
+
+import axios from "axios"
+import { useParams } from "next/navigation"
+import { useEffect, useState } from "react"
 
 function WorkspaceBoard() {
 
+        const[boardName,setBoardName]=useState("");
         const [activeTab,setActiveTab] =useState('whiteboard')
         const[api,setApi] = useState<ExcalidrawImperativeAPI | null>(null)
+        const {boardId} = useParams()
+
+        useEffect(()=>{
+                boardId && api && getWhiteBoardData()
+        },[boardId,api])
+        const getWhiteBoardData = async() =>{
+                try{
+                        const result = await axios.get('/api/board?boardId='+boardId)
+                        
+                        if(!result.data)throw new Error('No data found')
+                        if(result.data.boardName)
+                                setBoardName(result.data.boardName)
+                        api?.updateScene({
+                                elements:result.data.elements || [],
+                                // appState: result.data.appState || {},
+                                // appState:normalizeAppState(result.data.appState)
+                               
+                        })
+
+                        if(result.data.files){
+                                api?.addFiles(
+                                        Object.values(result.data.files)
+                                )
+                        }
+                }catch(err){
+                        console.log('Error in getting whiteboard data',err)
+                }
+        }
 
         const handleExportImage = async () =>{
 
@@ -39,11 +71,14 @@ function WorkspaceBoard() {
                 URL.revokeObjectURL(url)
         }
 
+ 
+
         return (
                  <div>
                         <WorkspaceHeader 
-                                selectedTab={(value:string)=>setActiveTab(value)}
+                                selectedTab={(value:string)=>setActiveTab && setActiveTab(value)}
                                 onExport={handleExportImage}
+                                boardName={boardName}
                         />
 
                        <div>

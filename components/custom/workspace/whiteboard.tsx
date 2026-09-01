@@ -1,6 +1,6 @@
 "use client"
 import { toast } from "@/components/ui/toast";
-import { Excalidraw } from "@excalidraw/excalidraw";
+import { Excalidraw, exportToBlob } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css"
 import axios from "axios";
 import { useParams } from "next/navigation";
@@ -86,20 +86,67 @@ function Whiteboard({onApiReady}:Props) {
         const [activeTool, setActiveTool] = useState('selection')
         const [selectedElement,setSelectedElement] =useState<any>(null)
         const [canvasState,setCanvasState]=useState<any>(null)
-        const [showAiSideBar,setShowAiSideBar] = useState(true)
+        const [showAiSideBar,setShowAiSideBar] = useState(false)
 
 
         const { boardId } = useParams()
         const saveTimeRef = useRef<any>(null)
 
+        const blobToBase64 = (blob:Blob):Promise<string> => {
+                return new Promise((resolve,reject)=>{
+                        const reader = new FileReader()
+
+                        reader.onload = () => resolve(reader.result as string)
+                        reader.onerror = error => reject(error)
+                        reader.readAsDataURL(blob)
+                })
+        }
+
+        const generatePreviewBase64 = async() =>{
+                if(!excalidrawAPI)return null
+
+                const elements = excalidrawAPI.getSceneElements()
+
+                if(!elements)return null
+
+                const appState = excalidrawAPI.getAppState()
+                const files = excalidrawAPI.getFiles()
+
+                const blob = await exportToBlob({
+                        elements,
+                        appState:{
+                                ... appState,
+                                exportBackground: true,
+                                exportWithDarkMode:false
+                        },
+                        files,
+                        mimeType:"image/png",
+                        quality:0.5,
+                        getDimension:()=>({
+                                width:400,
+                                height:225,
+                                scale:1
+                        })
+
+                      
+                })
+                return await blobToBase64(blob)
+        }
+
         const saveCanvasChanges = async (elements: readonly any[], appState: any, files: any) => {
                 try {
+
+                        const base64ImagePreview = await generatePreviewBase64()
+
                         const response = await axios.post('/api/whiteboard', {
                                 elements: elements,
                                 appState: appState,
                                 files: files,
-                                boardId: boardId
+                                boardId: boardId,
+                                base64ImagePreview:base64ImagePreview
                         })
+
+                        return response.data
 
                 } catch (error) {
                         console.log(`Error in saving board`)

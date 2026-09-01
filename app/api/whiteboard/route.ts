@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req:NextRequest){
 
-        const {boardId,elements,appState,files}= await req.json()
+        const {boardId,elements,appState,files,base64ImagePreview}= await req.json()
 
         const user = currentUser()
 
@@ -18,13 +18,15 @@ export async function POST(req:NextRequest){
                                 boardId:boardId,
                                 elements:elements,
                                 appState:appState,
-                                files:files
+                                files:files,
+                                previewImage:base64ImagePreview
                         }).onConflictDoUpdate({
                                 target:whiteboardData.boardId,
                                 set:{
                                         elements:elements,
                                         appState:appState,
                                         files:files,
+                                        previewImage:base64ImagePreview,
                                         updatedAt:new Date()
                                 },
                         })

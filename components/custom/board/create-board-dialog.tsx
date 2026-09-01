@@ -20,7 +20,7 @@ function CreateBoardDialog() {
 
         const [workspaceName,setWorkspaceName] = useState("")
         const [loading,setLoading] =useState(false)
-        const [dialog,setDialog] =useState(true)
+        const [dialog,setDialog] =useState(false)
         const router = useRouter()
 
         const handleCreateBoard = async () =>{
