@@ -14,13 +14,20 @@ import {  ArchiveIcon, LayoutGrid, SettingsIcon, Sparkles, UserRound } from "luc
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import CreateBoardDialog from "../board/create-board-dialog"
+import Link from "next/link"
+import { useContext } from "react"
+import { UserDetailContext } from "@/context/userDetailContext"
 
 export function AppSidebar() {
 
-
+        const totalCredits = 3
         const path = usePathname()
 
         const {user} = useUser()
+
+        const {userDetail,setUserDetail} = useContext(UserDetailContext)
+
+        console.log(userDetail)
         return (
                 <Sidebar>
 
@@ -41,16 +48,23 @@ export function AppSidebar() {
                                        <SidebarGroupLabel>My boards</SidebarGroupLabel>
 
                                        <SidebarMenuButton className="p-4 mt-3" isActive={path === "/dashboard"}>
-                                                <LayoutGrid />
+                                                <Link href="/dashboard" className="flex  items-center gap-2">
+                                                        <LayoutGrid />
                                                 <span>All Files</span>
+                                                </Link>
                                        </SidebarMenuButton>
                                        <SidebarMenuButton className="p-4 mt-3" isActive={path === "/shared"}>
-                                                <UserRound />
-                                                <span>Shared</span>
+                                                <Link href="/shared"  className="flex  items-center gap-2">
+                                                        <UserRound />
+                                                        <span>Shared</span>
+                                                </Link>
+                                               
                                        </SidebarMenuButton>
-                                       <SidebarMenuButton className="p-4 mt-3" isActive={path === "/archived"}>
+                                       <SidebarMenuButton className="p-4 mt-3" isActive={path === "/archieved"}>
+                                                 <Link href="/archieved"className="flex  items-center gap-2" >
                                                 <ArchiveIcon />
                                                 <span>Archived</span>
+                                                </Link>
                                        </SidebarMenuButton>
 
                                 </SidebarGroup>
@@ -74,8 +88,8 @@ export function AppSidebar() {
                                 
 
                                   <div className="p-4 my-3 border rounded-md">
-                                        <h2 className="text-sm flex justify-between">2 files created <span>total 3</span></h2>
-                                        <Progress value={66} className="h-2 mt-2"/>
+                                        <h2 className="text-sm flex justify-between">{totalCredits-userDetail?.credits} files created <span>total {totalCredits}</span></h2>
+                                        <Progress value={((totalCredits-userDetail?.credits)/totalCredits) * 100} className="h-2 mt-2"/>
                                   </div>
 
                                   <div className="flex items-center gap-2 p-4 border rounded-md">
